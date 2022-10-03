@@ -3,56 +3,45 @@ import { Contract, Transfer, Approval } from "../generated/Contract/Contract"
 import { ExampleEntity } from "../generated/schema"
 
 export function handleTransfer(event: Transfer): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
+  // dont get anything after 2021-08-10
+  if(event.block.number >= BigInt.fromI32(13000000)) {
+    return
   }
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
+  // sender
+  let sender = ExampleEntity.load(event.params.from.toHex())
 
-  // Entity fields can be set based on event parameters
-  entity.from = event.params.from
-  entity.to = event.params.to
+  if (!sender) {
+    sender = new ExampleEntity(event.params.from.toHex())
 
-  // Entities can be written to the store with `.save()`
-  entity.save()
+    sender.countInitiatedTx = BigInt.fromI32(0)
+    sender.countReceivedTx = BigInt.fromI32(0)
+    sender.valueReceived = BigInt.fromI32(0)
+    sender.valueSent = BigInt.fromI32(0)
+  }
 
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
+  sender.countInitiatedTx = sender.countInitiatedTx + BigInt.fromI32(1)
+  sender.valueSent = sender.valueSent + event.params.value
 
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.name(...)
-  // - contract.approve(...)
-  // - contract.totalSupply(...)
-  // - contract.transferFrom(...)
-  // - contract.decimals(...)
-  // - contract.transferAndCall(...)
-  // - contract.decreaseApproval(...)
-  // - contract.balanceOf(...)
-  // - contract.symbol(...)
-  // - contract.transfer(...)
-  // - contract.increaseApproval(...)
-  // - contract.allowance(...)
+  sender.save()
+
+
+  // receiver
+  let receiver = ExampleEntity.load(event.params.to.toHex())
+
+  if (!receiver) {
+    receiver = new ExampleEntity(event.params.to.toHex())
+
+    receiver.countInitiatedTx = BigInt.fromI32(0)
+    receiver.countReceivedTx = BigInt.fromI32(0)
+    receiver.valueReceived = BigInt.fromI32(0)
+    receiver.valueSent = BigInt.fromI32(0)
+  }
+
+  receiver.countReceivedTx = receiver.countReceivedTx + BigInt.fromI32(1)
+  receiver.valueReceived = receiver.valueReceived + event.params.value
+
+  receiver.save()
+
 }
-
-export function handleApproval(event: Approval): void {}
