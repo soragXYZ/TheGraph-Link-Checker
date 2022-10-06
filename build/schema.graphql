@@ -1,7 +1,0 @@
-type ExampleEntity @entity {
-  id: ID!
-  countInitiatedTx: BigInt!
-  countReceivedTx: BigInt!
-  valueReceived: BigInt!
-  valueSent: BigInt!
-}
