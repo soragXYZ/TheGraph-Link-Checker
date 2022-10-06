@@ -77,5 +77,4 @@ export class ExampleEntity extends Entity {
   set valueSent(value: BigInt) {
     this.set("valueSent", Value.fromBigInt(value));
   }
-
 }
